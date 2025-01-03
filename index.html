@@ -35,7 +35,6 @@
 <body>
     <h1>Broker Application</h1>
     <form id="brokerForm">
-        <!-- Deal Fields -->
         <label for="brokerEmail">Broker Email Link:</label>
         <input type="email" id="brokerEmail" name="brokerEmail" required>
 
@@ -70,18 +69,15 @@
         <label for="exitStrategy">Exit Strategy:</label>
         <textarea id="exitStrategy" name="exitStrategy" rows="3" required></textarea>
 
-        <!-- Person Fields -->
         <label for="personName">Person Name:</label>
         <input type="text" id="personName" name="personName" required>
 
         <label for="personPhone">Person Phone:</label>
         <input type="text" id="personPhone" name="personPhone" required>
 
-        <!-- Organization Fields -->
         <label for="organizationName">Organization Name (Optional):</label>
         <input type="text" id="organizationName" name="organizationName">
 
-        <!-- Attachments -->
         <label for="attachments">Attachments (Max size: 20MB each):</label>
         <input type="file" id="attachments" name="attachments[]" multiple>
 
@@ -95,59 +91,93 @@
             const apiKey = '29d13bb6f973927d502f37387b65c3a92e7012d5';
             const baseUrl = 'https://api.pipedrive.com/v1';
 
-            // Step 1: Create the Deal
-            const dealData = {
-                title: "Broker Application",
-                person_id: {
-                    name: document.getElementById('personName').value,
-                    phone: document.getElementById('personPhone').value
-                },
-                org_id: document.getElementById('organizationName').value ? { name: document.getElementById('organizationName').value } : null,
-                custom_fields: {
-                    "custom_field_abc123": document.getElementById('brokerEmail').value, // Replace with actual field keys
-                    "custom_field_abc124": document.getElementById('brokerPoints').value,
-                    "custom_field_abc125": document.getElementById('brokerRate').value,
-                    "custom_field_abc126": document.getElementById('propertyAddress').value,
-                    "custom_field_abc127": document.getElementById('additionalCollateral').value,
-                    "custom_field_abc128": document.getElementById('loanType').value,
-                    "custom_field_abc129": document.getElementById('loanValue').value,
-                    "custom_field_abc130": document.getElementById('loanStory').value,
-                    "custom_field_abc131": document.getElementById('exitStrategy').value
-                }
-            };
-
             try {
+                let personId = null;
+                let orgId = null;
+
+                // Step 1: Create Person
+                const personName = document.getElementById('personName').value;
+                const personPhone = document.getElementById('personPhone').value;
+
+                const personResponse = await fetch(`${baseUrl}/persons?api_token=${apiKey}`, {
+                    method: 'POST',
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: personName, phone: [{ value: personPhone, primary: true }] })
+                });
+
+                const personResult = await personResponse.json();
+                if (personResult.success) {
+                    personId = personResult.data.id;
+                } else {
+                    console.error('Error creating person:', personResult.error);
+                    alert('Failed to create person.');
+                    return;
+                }
+
+                // Step 2: Create Organization (if provided)
+                const orgName = document.getElementById('organizationName').value;
+                if (orgName) {
+                    const orgResponse = await fetch(`${baseUrl}/organizations?api_token=${apiKey}`, {
+                        method: 'POST',
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ name: orgName })
+                    });
+
+                    const orgResult = await orgResponse.json();
+                    if (orgResult.success) {
+                        orgId = orgResult.data.id;
+                    } else {
+                        console.error('Error creating organization:', orgResult.error);
+                    }
+                }
+
+                // Step 3: Create Deal
+                const dealData = {
+                    title: "Broker Application",
+                    person_id: personId,
+                    org_id: orgId,
+                    custom_fields: {
+                        "d34145b366b5e4bb21d39497c5e37d1a9ad6d58f": document.getElementById('brokerEmail').value,
+                        "cfd305bbb7faed82237888d924bd61cc25cb070a": document.getElementById('brokerPoints').value,
+                        "2130be76fa7225f1077b651da0e495aa73959faa": document.getElementById('brokerRate').value,
+                        "0702be4462a31f2772f51249672052e950e26c04": document.getElementById('propertyAddress').value,
+                        "ade937a49d01c8cba3d383937675ee35a402f910": document.getElementById('additionalCollateral').value,
+                        "c47fce1cb6ade7b363b90dc07d98bd3d9dd71249": document.getElementById('loanType').value,
+                        "value": document.getElementById('loanValue').value,
+                        "2b39b718134c10ab997787a160e2f007dd18dea2": document.getElementById('loanStory').value,
+                        "c988ee2316330a9faf27a6b3f2b2df89e4a871cb": document.getElementById('exitStrategy').value
+                    }
+                };
+
                 const dealResponse = await fetch(`${baseUrl}/deals?api_token=${apiKey}`, {
                     method: 'POST',
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(dealData)
                 });
 
                 const dealResult = await dealResponse.json();
-
                 if (!dealResult.success) {
                     console.error('Error creating deal:', dealResult.error);
-                    alert('Deal creation failed. Check console for details.');
+                    alert('Deal creation failed.');
                     return;
                 }
 
                 const dealId = dealResult.data.id;
                 console.log('Deal created successfully:', dealId);
 
-                // Step 2: Upload Attachments
+                // Step 4: Upload Attachments
                 const attachments = document.getElementById('attachments').files;
-                for (let i = 0; i < attachments.length; i++) {
-                    if (attachments[i].size > 20 * 1024 * 1024) {
-                        alert(`File "${attachments[i].name}" exceeds the 20MB limit.`);
+                for (let file of attachments) {
+                    if (file.size > 20 * 1024 * 1024) {
+                        alert(`File "${file.name}" exceeds the 20MB limit.`);
                         return;
                     }
 
                     const fileData = new FormData();
-                    fileData.append('file', attachments[i]);
+                    fileData.append('file', file);
+                    fileData.append('deal_id', dealId);
 
-                    const fileResponse = await fetch(`${baseUrl}/files?api_token=${apiKey}&deal_id=${dealId}`, {
+                    const fileResponse = await fetch(`${baseUrl}/files?api_token=${apiKey}`, {
                         method: 'POST',
                         body: fileData
                     });
@@ -155,7 +185,7 @@
                     const fileResult = await fileResponse.json();
                     if (!fileResult.success) {
                         console.error('Error uploading file:', fileResult.error);
-                        alert('File upload failed. Check console for details.');
+                        alert('File upload failed.');
                         return;
                     }
                 }
