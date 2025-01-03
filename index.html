@@ -160,7 +160,7 @@
                     }
                 }
 
-                // Step 4: Create Deal Without Files (Do not include the 'files' field)
+                // Step 4: Create Deal Without Files (Ensure no 'files' field here)
                 const dealData = {
                     title: "Broker Application",
                     person_id: personId,
@@ -190,7 +190,7 @@
                     return;
                 }
 
-                // Step 5: Attach Files to the Deal
+                // Step 5: Attach Files to the Deal (After creating the deal)
                 const dealId = dealResult.data.id;
                 if (fileIds.length > 0) {
                     for (let fileId of fileIds) {
