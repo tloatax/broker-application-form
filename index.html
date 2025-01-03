@@ -34,7 +34,7 @@
 </head>
 <body>
     <h1>Broker Application</h1>
-    <form id="brokerForm">
+    <form id="brokerForm" enctype="multipart/form-data">
         <label for="brokerEmail">Broker Email Link:</label>
         <input type="email" id="brokerEmail" name="brokerEmail" required>
 
@@ -94,6 +94,7 @@
             try {
                 let personId = null;
                 let orgId = null;
+                let fileIds = [];
 
                 // Step 1: Create Person
                 const personName = document.getElementById('personName').value;
@@ -131,7 +132,30 @@
                     }
                 }
 
-                // Step 3: Create Deal (Fixing custom field placement)
+                // Step 3: Handle File Uploads (if any)
+                const attachments = document.getElementById('attachments').files;
+                if (attachments.length > 0) {
+                    for (let i = 0; i < attachments.length; i++) {
+                        const file = attachments[i];
+                        const formData = new FormData();
+                        formData.append('file', file);
+
+                        const uploadResponse = await fetch(`${baseUrl}/files?api_token=${apiKey}`, {
+                            method: 'POST',
+                            body: formData
+                        });
+
+                        const uploadResult = await uploadResponse.json();
+                        if (uploadResult.success) {
+                            fileIds.push(uploadResult.data.id);
+                        } else {
+                            console.error('Error uploading file:', uploadResult.error);
+                            alert('Failed to upload file.');
+                        }
+                    }
+                }
+
+                // Step 4: Create Deal
                 const dealData = {
                     title: "Broker Application",
                     person_id: personId,
@@ -142,9 +166,10 @@
                     "0702be4462a31f2772f51249672052e950e26c04": document.getElementById('propertyAddress').value,
                     "ade937a49d01c8cba3d383937675ee35a402f910": document.getElementById('additionalCollateral').value,
                     "c47fce1cb6ade7b363b90dc07d98bd3d9dd71249": document.getElementById('loanType').value,
-                    "value": document.getElementById('loanValue').value,  // Corrected to use built-in "value" field for Deal Amount
-                    "2b39b718134c10ab997787a160e2f007dd18dea2": document.getElementById('loanStory').value, // Correct this custom field ID
-                    "c988ee2316330a9faf27a6b3f2b2df89e4a871cb": document.getElementById('exitStrategy').value
+                    "value": document.getElementById('loanValue').value,
+                    "2b39b718134c10ab997787a160e2f007dd18dea2": document.getElementById('loanStory').value,
+                    "c988ee2316330a9faf27a6b3f2b2df89e4a871cb": document.getElementById('exitStrategy').value,
+                    "files": fileIds // Attach file IDs to the deal
                 };
 
                 const dealResponse = await fetch(`${baseUrl}/deals?api_token=${apiKey}`, {
