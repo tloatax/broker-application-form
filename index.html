@@ -34,7 +34,7 @@
 </head>
 <body>
     <h1>Broker Application</h1>
-    <form id="brokerForm" enctype="multipart/form-data">
+    <form id="brokerForm">
         <!-- Deal Fields -->
         <label for="brokerEmail">Broker Email Link:</label>
         <input type="email" id="brokerEmail" name="brokerEmail" required>
@@ -78,7 +78,7 @@
         <input type="text" id="personPhone" name="personPhone" required>
 
         <!-- Organization Fields -->
-        <label for="organizationName">Organization Name:</label>
+        <label for="organizationName">Organization Name (Optional):</label>
         <input type="text" id="organizationName" name="organizationName">
 
         <!-- Attachments -->
@@ -94,58 +94,73 @@
 
             const apiKey = '29d13bb6f973927d502f37387b65c3a92e7012d5';
             const baseUrl = 'https://api.pipedrive.com/v1';
-            const formData = new FormData();
-            const attachments = document.getElementById('attachments').files;
 
-            // Validate file sizes
-            for (let i = 0; i < attachments.length; i++) {
-                if (attachments[i].size > 20 * 1024 * 1024) {
-                    alert(`File "${attachments[i].name}" exceeds the 20MB limit.`);
-                    return;
+            // Step 1: Create the Deal
+            const dealData = {
+                title: "Broker Application",
+                person_id: {
+                    name: document.getElementById('personName').value,
+                    phone: document.getElementById('personPhone').value
+                },
+                org_id: document.getElementById('organizationName').value ? { name: document.getElementById('organizationName').value } : null,
+                custom_fields: {
+                    "custom_field_abc123": document.getElementById('brokerEmail').value, // Replace with actual field keys
+                    "custom_field_abc124": document.getElementById('brokerPoints').value,
+                    "custom_field_abc125": document.getElementById('brokerRate').value,
+                    "custom_field_abc126": document.getElementById('propertyAddress').value,
+                    "custom_field_abc127": document.getElementById('additionalCollateral').value,
+                    "custom_field_abc128": document.getElementById('loanType').value,
+                    "custom_field_abc129": document.getElementById('loanValue').value,
+                    "custom_field_abc130": document.getElementById('loanStory').value,
+                    "custom_field_abc131": document.getElementById('exitStrategy').value
                 }
-            }
-
-            // Prepare form data
-            formData.append('title', 'Broker Application');
-            formData.append('custom_fields[broker_email_link]', document.getElementById('brokerEmail').value);
-            formData.append('custom_fields[requested_broker_points]', document.getElementById('brokerPoints').value);
-            formData.append('custom_fields[requested_broker_rate]', document.getElementById('brokerRate').value);
-            formData.append('custom_fields[property_address]', document.getElementById('propertyAddress').value);
-            formData.append('custom_fields[additional_collateral]', document.getElementById('additionalCollateral').value);
-            formData.append('custom_fields[loan_type]', document.getElementById('loanType').value);
-            formData.append('custom_fields[loan_value]', document.getElementById('loanValue').value);
-            formData.append('custom_fields[loan_story]', document.getElementById('loanStory').value);
-            formData.append('custom_fields[exit_strategy]', document.getElementById('exitStrategy').value);
-
-            // Add person data
-            const personName = document.getElementById('personName').value;
-            const personPhone = document.getElementById('personPhone').value;
-            formData.append('person_name', personName);
-            formData.append('person_phone', personPhone);
-
-            // Add optional organization
-            const orgName = document.getElementById('organizationName').value;
-            if (orgName) {
-                formData.append('org_name', orgName);
-            }
-
-            // Add attachments
-            for (let i = 0; i < attachments.length; i++) {
-                formData.append('files[]', attachments[i]);
-            }
+            };
 
             try {
-                const response = await fetch(`${baseUrl}/deals?api_token=${apiKey}`, {
+                const dealResponse = await fetch(`${baseUrl}/deals?api_token=${apiKey}`, {
                     method: 'POST',
-                    body: formData,
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify(dealData)
                 });
 
-                if (response.ok) {
-                    alert('Submission successful!');
-                } else {
-                    console.error('Error:', await response.text());
-                    alert('Submission failed. Check the console for details.');
+                const dealResult = await dealResponse.json();
+
+                if (!dealResult.success) {
+                    console.error('Error creating deal:', dealResult.error);
+                    alert('Deal creation failed. Check console for details.');
+                    return;
                 }
+
+                const dealId = dealResult.data.id;
+                console.log('Deal created successfully:', dealId);
+
+                // Step 2: Upload Attachments
+                const attachments = document.getElementById('attachments').files;
+                for (let i = 0; i < attachments.length; i++) {
+                    if (attachments[i].size > 20 * 1024 * 1024) {
+                        alert(`File "${attachments[i].name}" exceeds the 20MB limit.`);
+                        return;
+                    }
+
+                    const fileData = new FormData();
+                    fileData.append('file', attachments[i]);
+
+                    const fileResponse = await fetch(`${baseUrl}/files?api_token=${apiKey}&deal_id=${dealId}`, {
+                        method: 'POST',
+                        body: fileData
+                    });
+
+                    const fileResult = await fileResponse.json();
+                    if (!fileResult.success) {
+                        console.error('Error uploading file:', fileResult.error);
+                        alert('File upload failed. Check console for details.');
+                        return;
+                    }
+                }
+
+                alert('Submission successful!');
             } catch (error) {
                 console.error('Error:', error);
                 alert('An error occurred. Please try again.');
