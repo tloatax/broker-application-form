@@ -107,6 +107,7 @@
                 });
 
                 const personResult = await personResponse.json();
+                console.log('Person Create Response:', personResult);
                 if (personResult.success) {
                     personId = personResult.data.id;
                 } else {
@@ -125,6 +126,7 @@
                     });
 
                     const orgResult = await orgResponse.json();
+                    console.log('Organization Create Response:', orgResult);
                     if (orgResult.success) {
                         orgId = orgResult.data.id;
                     } else {
@@ -146,6 +148,8 @@
                         });
 
                         const uploadResult = await uploadResponse.json();
+                        console.log('File Upload Response:', uploadResult);
+
                         if (uploadResult.success) {
                             fileIds.push(uploadResult.data.id);
                         } else {
@@ -180,6 +184,7 @@
                 });
 
                 const dealResult = await dealResponse.json();
+                console.log('Deal Create Response:', dealResult);
                 if (!dealResult.success) {
                     console.error('Error creating deal:', dealResult.error);
                     alert('Deal creation failed.');
