@@ -190,7 +190,10 @@
                     return;
                 }
 
-                // Step 5: Attach Files to the Deal (After creating the deal)
+                // Step 5: Add a 5-second delay before attaching files
+                await delay(5000); // Delay 5 seconds before attaching files
+
+                // Step 6: Attach Files to the Deal (After creating the deal)
                 const dealId = dealResult.data.id;
                 if (fileIds.length > 0) {
                     for (let fileId of fileIds) {
@@ -212,12 +215,17 @@
                     }
                 }
 
-                alert('Submission successful!');
+                alert('Form submitted successfully!');
+
             } catch (error) {
                 console.error('Error:', error);
                 alert('An error occurred. Please try again.');
             }
         });
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
     </script>
 </body>
 </html>
