@@ -151,6 +151,7 @@
                         } else {
                             console.error('Error uploading file:', uploadResult.error);
                             alert('Failed to upload file.');
+                            return; // Stop processing if any file fails
                         }
                     }
                 }
