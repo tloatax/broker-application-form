@@ -160,7 +160,7 @@
                     }
                 }
 
-                // Step 4: Create Deal Without Files (Ensure no 'files' field here)
+                // Step 4: Create Deal (Include fileIds in deal data)
                 const dealData = {
                     title: "Broker Application",
                     person_id: personId,
@@ -173,7 +173,8 @@
                     "c47fce1cb6ade7b363b90dc07d98bd3d9dd71249": document.getElementById('loanType').value,
                     "value": document.getElementById('loanValue').value,
                     "2b39b718134c10ab997787a160e2f007dd18dea2": document.getElementById('loanStory').value,
-                    "c988ee2316330a9faf27a6b3f2b2df89e4a871cb": document.getElementById('exitStrategy').value
+                    "c988ee2316330a9faf27a6b3f2b2df89e4a871cb": document.getElementById('exitStrategy').value,
+                    files: fileIds // Attach files here
                 };
 
                 const dealResponse = await fetch(`${baseUrl}/deals?api_token=${apiKey}`, {
@@ -188,29 +189,6 @@
                     console.error('Error creating deal:', dealResult.error);
                     alert('Deal creation failed.');
                     return;
-                }
-
-                // Step 5: Attach Files to the Deal (After creating the deal)
-                const dealId = dealResult.data.id;
-                if (fileIds.length > 0) {
-                    for (let fileId of fileIds) {
-                        const attachResponse = await fetch(`${baseUrl}/files/${fileId}/related?api_token=${apiKey}`, {
-                            method: 'POST',
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ 
-                                related_id: dealId,
-                                related_type: 'deal'
-                            })
-                        });
-
-                        const attachResult = await attachResponse.json();
-                        console.log('File Attach Response:', attachResult);
-                        if (!attachResult.success) {
-                            console.error('Error attaching file:', attachResult.error);
-                            alert('Failed to attach file to deal.');
-                            return;
-                        }
-                    }
                 }
 
                 alert('Submission successful!');
