@@ -96,45 +96,7 @@
                 let orgId = null;
                 let fileIds = [];
 
-                // Step 1: Create Person
-                const personName = document.getElementById('personName').value;
-                const personPhone = document.getElementById('personPhone').value;
-
-                const personResponse = await fetch(`${baseUrl}/persons?api_token=${apiKey}`, {
-                    method: 'POST',
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ name: personName, phone: [{ value: personPhone, primary: true }] })
-                });
-
-                const personResult = await personResponse.json();
-                console.log('Person Create Response:', personResult);
-                if (personResult.success) {
-                    personId = personResult.data.id;
-                } else {
-                    console.error('Error creating person:', personResult.error);
-                    alert('Failed to create person.');
-                    return;
-                }
-
-                // Step 2: Create Organization (if provided)
-                const orgName = document.getElementById('organizationName').value;
-                if (orgName) {
-                    const orgResponse = await fetch(`${baseUrl}/organizations?api_token=${apiKey}`, {
-                        method: 'POST',
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ name: orgName })
-                    });
-
-                    const orgResult = await orgResponse.json();
-                    console.log('Organization Create Response:', orgResult);
-                    if (orgResult.success) {
-                        orgId = orgResult.data.id;
-                    } else {
-                        console.error('Error creating organization:', orgResult.error);
-                    }
-                }
-
-                // Step 3: Handle File Uploads (if any)
+                // Step 1: Upload Files First (Get File IDs)
                 const attachments = document.getElementById('attachments').files;
                 if (attachments.length > 0) {
                     for (let i = 0; i < attachments.length; i++) {
@@ -160,7 +122,45 @@
                     }
                 }
 
-                // Step 4: Create Deal without Files
+                // Step 2: Create Person
+                const personName = document.getElementById('personName').value;
+                const personPhone = document.getElementById('personPhone').value;
+
+                const personResponse = await fetch(`${baseUrl}/persons?api_token=${apiKey}`, {
+                    method: 'POST',
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ name: personName, phone: [{ value: personPhone, primary: true }] })
+                });
+
+                const personResult = await personResponse.json();
+                console.log('Person Create Response:', personResult);
+                if (personResult.success) {
+                    personId = personResult.data.id;
+                } else {
+                    console.error('Error creating person:', personResult.error);
+                    alert('Failed to create person.');
+                    return;
+                }
+
+                // Step 3: Create Organization (if provided)
+                const orgName = document.getElementById('organizationName').value;
+                if (orgName) {
+                    const orgResponse = await fetch(`${baseUrl}/organizations?api_token=${apiKey}`, {
+                        method: 'POST',
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({ name: orgName })
+                    });
+
+                    const orgResult = await orgResponse.json();
+                    console.log('Organization Create Response:', orgResult);
+                    if (orgResult.success) {
+                        orgId = orgResult.data.id;
+                    } else {
+                        console.error('Error creating organization:', orgResult.error);
+                    }
+                }
+
+                // Step 4: Create Deal Without Files (Do not include the 'files' field)
                 const dealData = {
                     title: "Broker Application",
                     person_id: personId,
