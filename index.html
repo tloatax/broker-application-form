@@ -131,22 +131,20 @@
                     }
                 }
 
-                // Step 3: Create Deal
+                // Step 3: Create Deal (Fixing custom field placement)
                 const dealData = {
                     title: "Broker Application",
                     person_id: personId,
                     org_id: orgId,
-                    custom_fields: {
-                        "d34145b366b5e4bb21d39497c5e37d1a9ad6d58f": document.getElementById('brokerEmail').value,
-                        "cfd305bbb7faed82237888d924bd61cc25cb070a": document.getElementById('brokerPoints').value,
-                        "2130be76fa7225f1077b651da0e495aa73959faa": document.getElementById('brokerRate').value,
-                        "0702be4462a31f2772f51249672052e950e26c04": document.getElementById('propertyAddress').value,
-                        "ade937a49d01c8cba3d383937675ee35a402f910": document.getElementById('additionalCollateral').value,
-                        "c47fce1cb6ade7b363b90dc07d98bd3d9dd71249": document.getElementById('loanType').value,
-                        "value": document.getElementById('loanValue').value,
-                        "2b39b718134c10ab997787a160e2f007dd18dea2": document.getElementById('loanStory').value,
-                        "c988ee2316330a9faf27a6b3f2b2df89e4a871cb": document.getElementById('exitStrategy').value
-                    }
+                    "d34145b366b5e4bb21d39497c5e37d1a9ad6d58f": document.getElementById('brokerEmail').value,
+                    "cfd305bbb7faed82237888d924bd61cc25cb070a": document.getElementById('brokerPoints').value,
+                    "2130be76fa7225f1077b651da0e495aa73959faa": document.getElementById('brokerRate').value,
+                    "0702be4462a31f2772f51249672052e950e26c04": document.getElementById('propertyAddress').value,
+                    "ade937a49d01c8cba3d383937675ee35a402f910": document.getElementById('additionalCollateral').value,
+                    "c47fce1cb6ade7b363b90dc07d98bd3d9dd71249": document.getElementById('loanType').value,
+                    "2b39b718134c10ab997787a160e2f007dd18dea2": document.getElementById('loanValue').value, 
+                    "c988ee2316330a9faf27a6b3f2b2df89e4a871cb": document.getElementById('loanStory').value,
+                    "c988ee2316330a9faf27a6b3f2b2df89e4a871cb": document.getElementById('exitStrategy').value
                 };
 
                 const dealResponse = await fetch(`${baseUrl}/deals?api_token=${apiKey}`, {
@@ -160,34 +158,6 @@
                     console.error('Error creating deal:', dealResult.error);
                     alert('Deal creation failed.');
                     return;
-                }
-
-                const dealId = dealResult.data.id;
-                console.log('Deal created successfully:', dealId);
-
-                // Step 4: Upload Attachments
-                const attachments = document.getElementById('attachments').files;
-                for (let file of attachments) {
-                    if (file.size > 20 * 1024 * 1024) {
-                        alert(`File "${file.name}" exceeds the 20MB limit.`);
-                        return;
-                    }
-
-                    const fileData = new FormData();
-                    fileData.append('file', file);
-                    fileData.append('deal_id', dealId);
-
-                    const fileResponse = await fetch(`${baseUrl}/files?api_token=${apiKey}`, {
-                        method: 'POST',
-                        body: fileData
-                    });
-
-                    const fileResult = await fileResponse.json();
-                    if (!fileResult.success) {
-                        console.error('Error uploading file:', fileResult.error);
-                        alert('File upload failed.');
-                        return;
-                    }
                 }
 
                 alert('Submission successful!');
