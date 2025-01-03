@@ -113,12 +113,11 @@ document.getElementById('brokerForm').addEventListener('submit', async (e) => {
         const dealId = dealResult.data.id;
         if (fileIds.length > 0) {
             for (let fileId of fileIds) {
-                const attachResponse = await fetch(`${baseUrl}/files/${fileId}/link?api_token=${apiKey}`, {
-                    method: 'POST',
+                const attachResponse = await fetch(`${baseUrl}/files/${fileId}?api_token=${apiKey}`, {
+                    method: 'PUT',
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
-                        item_type: 'deal',
-                        item_id: dealId
+                        deal_id: dealId
                     })
                 });
 
