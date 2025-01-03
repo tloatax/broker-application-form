@@ -194,10 +194,9 @@
                 const dealId = dealResult.data.id;
                 if (fileIds.length > 0) {
                     for (let fileId of fileIds) {
-                        const attachResponse = await fetch(`${baseUrl}/files/${fileId}/related?api_token=${apiKey}`, {
+                        const attachResponse = await fetch(`${baseUrl}/files/${fileId}/deal/${dealId}?api_token=${apiKey}`, {
                             method: 'POST',
-                            headers: { "Content-Type": "application/json" },
-                            body: JSON.stringify({ deal_id: dealId })
+                            headers: { "Content-Type": "application/json" }
                         });
 
                         const attachResult = await attachResponse.json();
