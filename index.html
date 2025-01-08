@@ -19,7 +19,7 @@ document.getElementById('brokerForm').addEventListener('submit', async (e) => {
 
                 const uploadResponse = await fetch(`${baseUrl}/files?api_token=${apiKey}`, {
                     method: 'POST',
-                    body: formData
+                    body: formData,
                 });
 
                 const uploadResult = await uploadResponse.json();
@@ -29,12 +29,9 @@ document.getElementById('brokerForm').addEventListener('submit', async (e) => {
                     fileIds.push(uploadResult.data.id);
                 } else {
                     console.error('Error uploading file:', uploadResult.error);
-                    alert('Failed to upload file.');
+                    alert(`Failed to upload file: ${file.name}`);
                     return; // Stop processing if any file fails
                 }
-
-                // Add a delay after each file upload
-                await delay(2000); // Delay 2 seconds before proceeding to the next file (or next step)
             }
         }
 
@@ -45,7 +42,7 @@ document.getElementById('brokerForm').addEventListener('submit', async (e) => {
         const personResponse = await fetch(`${baseUrl}/persons?api_token=${apiKey}`, {
             method: 'POST',
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name: personName, phone: [{ value: personPhone, primary: true }] })
+            body: JSON.stringify({ name: personName, phone: [{ value: personPhone, primary: true }] }),
         });
 
         const personResult = await personResponse.json();
@@ -64,7 +61,7 @@ document.getElementById('brokerForm').addEventListener('submit', async (e) => {
             const orgResponse = await fetch(`${baseUrl}/organizations?api_token=${apiKey}`, {
                 method: 'POST',
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ name: orgName })
+                body: JSON.stringify({ name: orgName }),
             });
 
             const orgResult = await orgResponse.json();
@@ -76,7 +73,7 @@ document.getElementById('brokerForm').addEventListener('submit', async (e) => {
             }
         }
 
-        // Step 4: Create Deal Without Files (Ensure no 'files' field here)
+        // Step 4: Create Deal
         const dealData = {
             title: "Broker Application",
             person_id: personId,
@@ -89,13 +86,13 @@ document.getElementById('brokerForm').addEventListener('submit', async (e) => {
             "c47fce1cb6ade7b363b90dc07d98bd3d9dd71249": document.getElementById('loanType').value,
             "value": document.getElementById('loanValue').value,
             "2b39b718134c10ab997787a160e2f007dd18dea2": document.getElementById('loanStory').value,
-            "c988ee2316330a9faf27a6b3f2b2df89e4a871cb": document.getElementById('exitStrategy').value
+            "c988ee2316330a9faf27a6b3f2b2df89e4a871cb": document.getElementById('exitStrategy').value,
         };
 
         const dealResponse = await fetch(`${baseUrl}/deals?api_token=${apiKey}`, {
             method: 'POST',
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(dealData)
+            body: JSON.stringify(dealData),
         });
 
         const dealResult = await dealResponse.json();
@@ -106,19 +103,15 @@ document.getElementById('brokerForm').addEventListener('submit', async (e) => {
             return;
         }
 
-        // Step 5: Add a 5-second delay before attaching files
-        await delay(5000); // Delay 5 seconds before attaching files
-
-        // Step 6: Attach Files to the Deal (After creating the deal)
         const dealId = dealResult.data.id;
+
+        // Step 5: Attach Files to the Deal
         if (fileIds.length > 0) {
             for (let fileId of fileIds) {
                 const attachResponse = await fetch(`${baseUrl}/files/${fileId}?api_token=${apiKey}`, {
                     method: 'PUT',
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        deal_id: dealId
-                    })
+                    body: JSON.stringify({ deal_id: dealId }),
                 });
 
                 const attachResult = await attachResponse.json();
@@ -137,8 +130,3 @@ document.getElementById('brokerForm').addEventListener('submit', async (e) => {
         alert('An error occurred. Please try again.');
     }
 });
-
-// Function to add a delay
-function delay(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
